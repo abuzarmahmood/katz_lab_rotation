@@ -226,7 +226,7 @@ for n_states in range(min_states, max_states + 1):
         continue
 
 # Delete the laser_off node under /spike_trains/dig_in_(taste)/multinomial_hmm_results/ if it exists
-## On and off trials already deleted when multinomial_hmm_results node was removed for all trials - Abu
+## On and off trials already deleted when multinomial_hmm_results node was removed for all trials - Abu ##
 
 #try:
 #    hf5.remove_group('/spike_trains/multinomial_hmm_results/laser_off', recursive = True)
@@ -320,6 +320,8 @@ for n_states in range(min_states, max_states + 1):
         continue
 
 # Delete the laser_on node under /spike_trains/dig_in_(taste)/multinomial_hmm_results/ if it exists
+## On and off trials already deleted when multinomial_hmm_results node was removed for all trials - Abu ##
+        
 #try:
 #    exec("hf5.remove_node('/spike_trains/multinomial_hmm_results/laser_on', recursive = True)")
 #except:
