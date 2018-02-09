@@ -16,7 +16,16 @@ import easygui
 
 data_direc = easygui.diropenbox()
 os.chdir(data_direc)
-hf5 = tables.open_file('jy05_20170324_2500mslaser_170324_103823_repacked.h5','r+') #Select from list of files if multiple?
+
+# Look for the hdf5 file in the directory
+file_list = os.listdir('./')
+hdf5_name = ''
+for files in file_list:
+	if files[-2:] == 'h5':
+		hdf5_name = files
+
+# Open the hdf5 file
+hf5 = tables.open_file(hdf5_name, 'r+')
 
 plot_dir = './correlation_analysis_plots'
 if not os.path.isdir(plot_dir):
