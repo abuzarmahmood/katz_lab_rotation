@@ -140,7 +140,7 @@ for num_states in range(len(states)): ## Loop through all models in HMM
     palatability = trial_palatability[fin_off_trials]
 
     # Calculate Pearson parameters and make figures
-    r_pearson = np.zeros((lined_firing.shape[1], lined_firing.shape[2]))
+    r_pearson = np.zeros((lined_firing.shape[1], lined_firing.shape[2])) #shape = [neurons, time]
     p_pearson = np.ones((lined_firing.shape[1], lined_firing.shape[2]))
 
     for i in range(r_pearson.shape[0]):
@@ -269,13 +269,14 @@ for num_states in range(len(states)):
 
     # Delete the r_pearson and p_pearson nodes if they already exist
     try:
-        hf5.remove_node('/spike_trains/multinomial_hmm_results/laser_off/states_%i' % states[num_states], 'r_pearson')
-        hf5.remove_node('/spike_trains/multinomial_hmm_results/laser_off/states_%i' % states[num_states], 'p_pearson')
+        hf5.remove_node('/spike_trains/multinomial_hmm_results/laser_on/states_%i' % states[num_states], 'r_pearson')
+        hf5.remove_node('/spike_trains/multinomial_hmm_results/laser_on/states_%i' % states[num_states], 'p_pearson')
     except:
         pass
 
-    hf5.create_array('/spike_trains/multinomial_hmm_results/laser_off/states_%i' % states[num_states], 'r_pearson', r_pearson)
-    hf5.create_array('/spike_trains/multinomial_hmm_results/laser_off/states_%i' % states[num_states], 'p_pearson', p_pearson)
+    hf5.create_array('/spike_trains/multinomial_hmm_results/laser_on/states_%i' % states[num_states], 'r_pearson', r_pearson)
+    hf5.create_array('/spike_trains/multinomial_hmm_results/laser_on/states_%i' % states[num_states], 'p_pearson', p_pearson)
+    # pearson = correlated ac
     hf5.flush()
 
     fig = plt.figure()
