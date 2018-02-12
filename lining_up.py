@@ -1,3 +1,5 @@
+# Add saving parameters to file
+
 ####################################
 ## Lining up by state transitions ##
 ####################################
@@ -10,7 +12,6 @@ import pylab as plt
 from scipy.stats import pearsonr
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.image as mpimg
 import re
 import easygui
 
@@ -43,7 +44,10 @@ if np.std(taste_n) == 0:
 else:
     taste_n = int(easygui.multenterbox('How many trails per taste??',fields = ['# of trials'])[0])
 
-
+lining_params = easygui.multenterbox('Parameters for correlation',fields = ['Start time for palatability', 'End time for palatability', 'Probability to treat state as significant'])
+min_t = int(lining_params[0])
+max_t = int(lining_params[1])
+state_sig = float(lining_params[2])
 
 ################
 ## OFF TRIALS ##
@@ -60,8 +64,7 @@ for num_states in range(len(states)): ## Loop through all models in HMM
     exec('post_prob = hf5.root.spike_trains.multinomial_hmm_results.laser_off.states_%i.posterior_proba[:]' % states[num_states])
     #post_prob shape = [trials,time,states]
     exec('t = np.array(hf5.root.spike_trains.multinomial_hmm_results.laser_off.states_%i.time[:])' % states[num_states])
-    min_t = 700
-    max_t = 1200
+
     indices = np.where((t >= min_t)*(t <= max_t))[0]
 
     ## Note : HMM model is fit to particular trials but predicts posterior
@@ -81,7 +84,7 @@ for num_states in range(len(states)): ## Loop through all models in HMM
     # Find which trials have transitions and first point of transition
     transition = []
     for i in range(post_prob.shape[0]):
-        this_transition = np.where(post_prob[i, :, max_state] >= 0.8)[0]
+        this_transition = np.where(post_prob[i, :, max_state] >= state_sig)[0]
         if len(this_transition) > 0:
             transition.append([i, this_transition[0]])
 
@@ -92,9 +95,9 @@ for num_states in range(len(states)): ## Loop through all models in HMM
     palatability_order = [3,4,1,2] #Manually entered, corresponds to dig_in [0, 1, 2, 3]
 
     #Make palatability vector for ALL trials
-    trial_palatability = np.zeros(len(palatability_order)*30)
+    trial_palatability = np.zeros(len(palatability_order)*taste_n)
     for i in range(0,len(palatability_order)):
-        trial_palatability[i*30:(i+1)*30] = np.repeat(palatability_order[i],30)[:]
+        trial_palatability[i*taste_n:(i+1)*taste_n] = np.repeat(palatability_order[i],taste_n)[:]
 
     # Get the spike array for each individual taste and merge all:
     spikes = np.concatenate(tuple(dig_in[i].spike_array[:] for i in range(len(dig_in))), axis = 0)
@@ -170,8 +173,6 @@ for num_states in range(len(states)): ## Loop through all models in HMM
     # Code here is same as that for off trials - please refer to comments there for any questions - Thx! (Abu)
 for num_states in range(len(states)):
     ## Loop through states
-    min_t = 700
-    max_t = 1200
     exec('post_prob = hf5.root.spike_trains.multinomial_hmm_results.laser_on.states_%i.posterior_proba[:]' % states[num_states]) #shape = [trials,time,states]
     exec('t = np.array(hf5.root.spike_trains.multinomial_hmm_results.laser_on.states_%i.time[:])' % states[num_states])
     indices = np.where((t >= min_t)*(t <= max_t))[0]
@@ -180,7 +181,6 @@ for num_states in range(len(states)):
     ## probabilities for transitions in all trials.
 
     # list all tastes
-    taste_n = 30
     dig_in = hf5.list_nodes('/spike_trains')
     dig_in = [dig_in[i] if dig_in[i].__str__().find('dig_in')!=-1 else None for i in range(len(dig_in))]
     dig_in = list(filter(None, dig_in))
@@ -196,7 +196,7 @@ for num_states in range(len(states)):
 
     transition = []
     for i in range(post_prob.shape[0]):
-        this_transition = np.where(post_prob[i, :, max_state] >= 0.8)[0]
+        this_transition = np.where(post_prob[i, :, max_state] >= state_sig)[0]
         if len(this_transition) > 0:
             transition.append([i, this_transition[0]])
 
@@ -206,9 +206,9 @@ for num_states in range(len(states)):
 
 
     palatability_order = [3,4,1,2]
-    trial_palatability = np.zeros(len(palatability_order)*30)
+    trial_palatability = np.zeros(len(palatability_order)*taste_n)
     for i in range(0,len(palatability_order)):
-        trial_palatability[i*30:(i+1)*30] = np.repeat(palatability_order[i],30)[:]
+        trial_palatability[i*taste_n:(i+1)*taste_n] = np.repeat(palatability_order[i],taste_n)[:]
     #trial_palatability = np.array(trial_palatability)
 
     # Get the spike array for each individual taste and merge all:
