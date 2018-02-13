@@ -1,5 +1,3 @@
-# Add saving parameters to file
-
 ####################################
 ## Lining up by state transitions ##
 ####################################
@@ -44,10 +42,36 @@ if np.std(taste_n) == 0:
 else:
     taste_n = int(easygui.multenterbox('How many trails per taste??',fields = ['# of trials'])[0])
 
-lining_params = easygui.multenterbox('Parameters for correlation',fields = ['Start time for palatability', 'End time for palatability', 'Probability to treat state as significant'])
-min_t = int(lining_params[0])
-max_t = int(lining_params[1])
-state_sig = float(lining_params[2])
+#Specify params or load from file
+if easygui.ynbox('Load params from file?', 'Title', ('Yes', 'No')):
+    params_folder = easygui.diropenbox('Select parameters folder')
+    params_file = 'correlation_lining_params'
+    f = open(params_folder+'/'+params_file, 'r')
+    params = []
+    for line in f.readlines():
+        params.append(line)
+    f.close()
+    min_t = int(params[0])
+    max_t = int(params[1])
+    state_sig = float(params[2])
+    palatability_order = [int(i) for i in params[3:7]]
+    
+else:   #Request for parameters and save to file in correlation plot folder
+    lining_params = easygui.multenterbox('Parameters for correlation',fields = ['Start time for palatability', 'End time for palatability', 'Probability to treat state as significant'])
+    min_t = int(lining_params[0])
+    max_t = int(lining_params[1])
+    state_sig = float(lining_params[2])
+    
+    #palatability_order = [3,4,1,2] #Manually entered, corresponds to dig_in [0, 1, 2, 3]
+    palatability_order = easygui.multenterbox('Palatability rank for all dig_ins',fields = ['dig_in_0','dig_in_1','dig_in_2','dig_in_3'])
+    palatability_order = [int(i) for i in palatability_order]
+    
+    f = open(plot_dir + '/' + 'correlation_lining_params', 'w')
+    for params in lining_params:
+        	print(params, file=f)
+    for params in palatability_order:
+        	print(params, file=f)
+    f.close()
 
 ################
 ## OFF TRIALS ##
@@ -91,8 +115,6 @@ for num_states in range(len(states)): ## Loop through all models in HMM
     transition_trials = np.array([transition[i][0] for i in range(len(transition))]) # For indexing
     fin_off_trials = off_trials[transition_trials] # Since we're subsetting off trials and then only trials with transitions
 
-
-    palatability_order = [3,4,1,2] #Manually entered, corresponds to dig_in [0, 1, 2, 3]
 
     #Make palatability vector for ALL trials
     trial_palatability = np.zeros(len(palatability_order)*taste_n)
@@ -205,7 +227,6 @@ for num_states in range(len(states)):
     fin_on_trials = on_trials[transition_trials]
 
 
-    palatability_order = [3,4,1,2]
     trial_palatability = np.zeros(len(palatability_order)*taste_n)
     for i in range(0,len(palatability_order)):
         trial_palatability[i*taste_n:(i+1)*taste_n] = np.repeat(palatability_order[i],taste_n)[:]
