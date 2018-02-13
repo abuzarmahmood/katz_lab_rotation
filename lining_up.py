@@ -55,6 +55,12 @@ if easygui.ynbox('Load params from file?', 'Title', ('Yes', 'No')):
     max_t = int(params[1])
     state_sig = float(params[2])
     palatability_order = [int(i) for i in params[3:7]]
+    pre_stim_t = int(params[7]) #2000   #time before stimulus
+    data_window_pre = int(params[8]) #500   #window before transition time
+    data_window_post = int(params[9]) #750  #window after transition time
+    bin_window_size = int(params[10]) #250
+    step_size = int(params[11]) #25
+    
     
 else:   #Request for parameters and save to file in correlation plot folder
     lining_params = easygui.multenterbox('Parameters for correlation',fields = ['Start time for palatability', 'End time for palatability', 'Probability to treat state as significant'])
@@ -66,10 +72,20 @@ else:   #Request for parameters and save to file in correlation plot folder
     palatability_order = easygui.multenterbox('Palatability rank for all dig_ins',fields = ['dig_in_0','dig_in_1','dig_in_2','dig_in_3'])
     palatability_order = [int(i) for i in palatability_order]
     
+    #Params for making PSTH's
+    psth_params = easygui.multenterbox('Parameters for making PSTHs',fields = ['Pre-stimulus time (2000)','Time wanted before transition (500)','Time watned after transition (750)', 'Binning window size (250)', 'Window step size (25)'])
+    pre_stim_t = int(psth_params[0]) #2000   #time before stimulus
+    data_window_pre = int(psth_params[1]) #500   #window before transition time
+    data_window_post = int(psth_params[2]) #750  #window after transition time
+    bin_window_size = int(psth_params[3]) #250
+    step_size = int(psth_params[4]) #25
+    
     f = open(plot_dir + '/' + 'correlation_lining_params', 'w')
     for params in lining_params:
         	print(params, file=f)
     for params in palatability_order:
+        	print(params, file=f)
+    for params in psth_params:
         	print(params, file=f)
     f.close()
 
@@ -126,17 +142,13 @@ for num_states in range(len(states)): ## Loop through all models in HMM
     off_spikes = spikes[off_trials,:,:] #Index trials with no laser
 
     # Take spikes from trials with transitions and align them according to state transition per trial
-    pre_stim_t = 2000   #time before stimulus
-    data_window_pre = 500   #window before transition time
-    data_window_post = 750  #window after transition time
     lined_spikes = []
     for trial, time in transition:
         lined_spikes.append(off_spikes[trial, :, pre_stim_t + t[time] - data_window_pre :pre_stim_t + t[time] + data_window_post])
     # lined_spikes shape = list of trials, every index = array[neurons , time]
     lined_spikes = np.array(lined_spikes) # [trials, neurons, time]
 
-    bin_window_size = 250
-    step_size = 25
+
     ## Making PSTHs for the spikes
     lined_firing = np.zeros((lined_spikes.shape[0], lined_spikes.shape[1], int((data_window_pre + data_window_post - bin_window_size)/step_size) + 1))
 
@@ -241,9 +253,6 @@ for num_states in range(len(states)):
     on_spikes = spikes[on_trials,:,:]
 
     # Take spikes from trials with transitions and align them according to state transition per trial
-    pre_stim_t = 2000   #time before stimulus
-    data_window_pre = 500
-    data_window_post = 750
     lined_spikes = []
     for trial, time in transition:
         lined_spikes.append(on_spikes[trial, :, pre_stim_t + t[time] - data_window_pre :pre_stim_t + t[time] + data_window_post])
@@ -255,8 +264,6 @@ for num_states in range(len(states)):
 
     lined_spikes = np.array(lined_spikes) # [trials, neurons, time]
 
-    bin_window_size = 250
-    step_size = 25
     ## Making PSTHs for the spikes
     lined_firing = np.zeros((lined_spikes.shape[0], lined_spikes.shape[1], int((data_window_pre + data_window_post - bin_window_size)/step_size) + 1))
 
