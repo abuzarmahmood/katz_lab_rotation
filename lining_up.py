@@ -13,7 +13,7 @@ matplotlib.use('Agg')
 import re
 import easygui
 
-data_direc = easygui.diropenbox()
+data_direc = easygui.diropenbox('Choose directory to pick hdf5 file from')
 os.chdir(data_direc)
 
 # Look for the hdf5 file in the directory
@@ -154,7 +154,9 @@ for num_states in range(len(states)): ## Loop through all models in HMM
     fig = plt.figure()
     plt.title('Aligned firing rates, Off trials , Model states =' + str(states[num_states]))
     for i in range(test.shape[0]):
-        plt.plot(test[i,:])
+        plt.plot(np.arange(-data_window_pre,data_window_post-bin_window_size+step_size,step_size),test[i,:])
+    plt.xlabel('State transition time')
+    plt.ylabel('Normalized Firing Rate')
     fig.savefig(plot_dir + '/off_firing_states%i.png' % states[num_states])
     plt.close('all')
 
@@ -185,7 +187,9 @@ for num_states in range(len(states)): ## Loop through all models in HMM
 
     fig = plt.figure()
     plt.title('Correlation, Off trials , Model states =' + str(states[num_states]))
-    plt.plot(np.mean(r_pearson[:, :]**2, axis = 0))
+    plt.plot(np.arange(-data_window_pre,data_window_post-bin_window_size+step_size,step_size),np.mean(r_pearson[:, :]**2, axis = 0))
+    plt.xlabel('State transition time')
+    plt.ylabel('Pearson Correlation Coefficient')
     fig.savefig(plot_dir + '/off_correlation_states%i.png' % states[num_states])
     plt.close('all')
 
@@ -269,7 +273,9 @@ for num_states in range(len(states)):
     fig = plt.figure()
     plt.title('Aligned firing rates, On trials , Model states =' + str(states[num_states]))
     for i in range(test.shape[0]):
-        plt.plot(test[i,:])
+        plt.plot(np.arange(-data_window_pre,data_window_post-bin_window_size+step_size,step_size),test[i,:])
+    plt.xlabel('State transition time')
+    plt.ylabel('Normalized Firing Rate')
     fig.savefig(plot_dir + '/on_firing_states%i.png' % states[num_states])
     plt.close('all')
 
@@ -302,7 +308,9 @@ for num_states in range(len(states)):
 
     fig = plt.figure()
     plt.title('Correlation, On trials , Model states =' + str(states[num_states]))
-    plt.plot(np.mean(r_pearson[:, :]**2, axis = 0))
+    plt.plot(np.arange(-data_window_pre,data_window_post-bin_window_size+step_size,step_size),np.mean(r_pearson[:, :]**2, axis = 0))
+    plt.xlabel('State transition time')
+    plt.ylabel('Pearson Correlation Coefficient')
     fig.savefig(plot_dir + '/on_correlation_states%i.png' % states[num_states])
     plt.close('all')
 
