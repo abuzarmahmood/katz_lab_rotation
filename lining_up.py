@@ -80,14 +80,16 @@ else:   #Request for parameters and save to file in correlation plot folder
     bin_window_size = int(psth_params[3]) #250
     step_size = int(psth_params[4]) #25
     
-    f = open(plot_dir + '/' + 'correlation_lining_params', 'w')
-    for params in lining_params:
-        	print(params, file=f)
-    for params in palatability_order:
-        	print(params, file=f)
-    for params in psth_params:
-        	print(params, file=f)
-    f.close()
+    if os.path.isfile(plot_dir + '/' + 'correlation_lining_params'):
+        if easygui.ynbox('Overwrite old parameters file?', 'Title', ('Yes', 'No')):
+            f = open(plot_dir + '/' + 'correlation_lining_params', 'w')
+            for params in lining_params:
+                	print(params, file=f)
+            for params in palatability_order:
+                	print(params, file=f)
+            for params in psth_params:
+                	print(params, file=f)
+            f.close()
 
 ################
 ## OFF TRIALS ##
