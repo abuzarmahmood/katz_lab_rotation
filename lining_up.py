@@ -13,6 +13,7 @@ matplotlib.use('Agg')
 import re
 import easygui
 import shutil
+import matplotlib.image as mpimg
 
 if easygui.ynbox('Load directory list from file?', 'Title', ('Yes', 'No')):
     dir_list_folder = easygui.diropenbox('Select folder containing directory list')
@@ -39,6 +40,10 @@ if easygui.ynbox('Load directory list from file?', 'Title', ('Yes', 'No')):
         plot_dir = './correlation_analysis_plots'
         if not os.path.isdir(plot_dir):
             os.mkdir(plot_dir)
+            
+        transition_check_dir = './transition_check_dir'
+        if not os.path.isdir(transition_check_dir):
+            os.mkdir(transition_check_dir)
 
         # For extracting spike trains
         dig_in = hf5.list_nodes('/spike_trains')
@@ -109,10 +114,17 @@ if easygui.ynbox('Load directory list from file?', 'Title', ('Yes', 'No')):
                         for params in psth_params:
                             	print(params, file=f)
                         f.close()
-                        
+        
+        # Delete and remake these dirs to make sure they are empty for new analysis                
         try: 
-            shutil.rmtree('correlation_analysis_plots')
-            os.mkdir('correlation_analysis_plots')
+            shutil.rmtree(plot_dir)
+            os.mkdir(plot_dir)
+        except:
+            print('Could not delete correlation plots folder!')  
+            
+        try: 
+            shutil.rmtree(transition_check_dir)
+            os.mkdir(transition_check_dir)
         except:
             print('Could not delete correlation plots folder!')  
 
@@ -175,14 +187,35 @@ if easygui.ynbox('Load directory list from file?', 'Title', ('Yes', 'No')):
                             prev_transition.append(this_transition[0])
                             # Give them the same value so that the array has the same size
                             # for subtraction for del_transition
+                            
 
             if len(transition)>0:
+                
             # If there are transitions, do further processing, otherwise just create empty arrays
             # and write those to files
                 del_transition = np.multiply([transition[i][1]-prev_transition[i] for i in range(len(transition))],hmm_bin_size)
-                del_transition = del_transition[del_transition!=0]
-                # Remove all zeros
                 
+                # Annotate HMM plots with transition times for checking
+                orig_trial_index = [off_trials[i[0]] for i in transition]
+                for i in range(len(transition)):
+                    fig = plt.figure(figsize=(16,6))
+                    ax0 = fig.add_subplot(1,2,1)
+                    ax0.plot(np.multiply(range(post_prob.shape[1]),10),post_prob[transition[i][0]]) #Pick out trials from post_prob with transitions
+                    ax0.scatter(transition[i][1]*10,state_sig)
+                    ax0.scatter(prev_transition[i]*10,state_sig)
+                    plt.title('Transition time = %i' % del_transition[i])
+                    hmm_plot_dir = './HMM_plots/Multinomial/laser_off/states_%i' % state
+                    files_list = os.listdir(hmm_plot_dir)
+                    # Pick out HMM plots corresponding to trials with transitions
+                    file_name = files_list[np.where(np.array([file_name.find('Trial_%i.' % (orig_trial_index[i]+1)) for file_name in files_list])>0)[0][0]]
+                    ax1 = fig.add_subplot(1,2,2)
+                    img = mpimg.imread(hmm_plot_dir + '/' + file_name)
+                    ax1.imshow(img)
+                    plt.tight_layout()
+                    fig.savefig(transition_check_dir + '/' + 'off_state%i_trial%i' % (state,orig_trial_index[i]+1))
+                    plt.close('all')
+                    
+                del_transition = del_transition[del_transition!=0] # Remove all zeros so they don't get averaged
                 transition_trials = np.array([transition[i][0] for i in range(len(transition))]) # For indexing
                 fin_off_trials = off_trials[transition_trials] # Since we're subsetting off trials and then only trials with transitions
     
@@ -323,6 +356,25 @@ if easygui.ynbox('Load directory list from file?', 'Title', ('Yes', 'No')):
             if len(transition)>0:
                 del_transition = np.multiply([transition[i][1]-prev_transition[i] for i in range(len(transition))],hmm_bin_size)
                 del_transition = del_transition[del_transition!=0]
+                
+                orig_trial_index = [on_trials[i[0]] for i in transition]
+                for i in range(len(transition)):
+                    fig = plt.figure(figsize=(16,6))
+                    ax0 = fig.add_subplot(1,2,1)
+                    ax0.plot(np.multiply(range(post_prob.shape[1]),10),post_prob[transition[i][0]]) #Pick out trials from post_prob with transitions
+                    ax0.scatter(transition[i][1]*10,state_sig)
+                    ax0.scatter(prev_transition[i]*10,state_sig)
+                    plt.title('Transition time = %i' % del_transition[i])
+                    hmm_plot_dir = './HMM_plots/Multinomial/laser_on/states_%i' % state
+                    files_list = os.listdir(hmm_plot_dir)
+                    # Pick out HMM plots corresponding to trials with transitions
+                    file_name = files_list[np.where(np.array([file_name.find('Trial_%i.' % (orig_trial_index[i]+1)) for file_name in files_list])>0)[0][0]]
+                    ax1 = fig.add_subplot(1,2,2)
+                    img = mpimg.imread(hmm_plot_dir + '/' + file_name)
+                    ax1.imshow(img)
+                    plt.tight_layout()
+                    fig.savefig(transition_check_dir + '/' + 'on_state%i_trial%i' % (state,orig_trial_index[i]+1))
+                    plt.close('all')
                 
                 transition_trials = np.array([transition[i][0] for i in range(len(transition))])
                 ## Now EVERYTHING has to be indexed by transition trials as well -- MAYBE NOT
